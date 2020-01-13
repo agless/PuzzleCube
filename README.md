@@ -1,0 +1,1 @@
+A library providing a sliding puzzle cube data model.
