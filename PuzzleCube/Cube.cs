@@ -37,7 +37,7 @@ namespace PuzzleCube
         /// <summary>
         /// The n-by-n size of the puzzle cube.
         /// </summary>
-        public int Width => GameBoard[0].Count();
+        public int Width => GameBoard[0].Length;
 
         /// <summary>
         /// The standard puzzle cube colors.
@@ -352,9 +352,9 @@ namespace PuzzleCube
             // 0 => 2 => 5 => 4 => 0
             Color[] temp = GetRowCopy(0, pos);
             GameBoard[0][pos] = GetColumnCopy(4, pos).Reverse().ToArray();
-            SetColumn(4, pos, GetRowCopy(5, pos));
-            GameBoard[5][pos] = GetColumnCopy(2, pos).Reverse().ToArray();
-            SetColumn(2, pos, temp);
+            SetColumn(4, pos, GetRowCopy(5, Width - 1 - pos));
+            GameBoard[5][Width - 1 - pos] = GetColumnCopy(2, Width - 1 - pos).Reverse().ToArray();
+            SetColumn(2, Width - 1 - pos, temp);
 
             if (pos == 0)
             {
@@ -371,9 +371,9 @@ namespace PuzzleCube
         {
             // 0 => 4 => 5 => 2 => 0
             Color[] temp = GetRowCopy(0, pos);
-            GameBoard[0][pos] = GetColumnCopy(2, pos);
-            SetColumn(2, pos, GetRowCopy(5, pos).Reverse().ToArray());
-            GameBoard[5][pos] = GetColumnCopy(4, pos);
+            GameBoard[0][pos] = GetColumnCopy(2, Width - 1 - pos);
+            SetColumn(2, Width - 1 - pos, GetRowCopy(5, Width - 1 - pos).Reverse().ToArray());
+            GameBoard[5][Width - 1 - pos] = GetColumnCopy(4, pos);
             SetColumn(4, pos, temp.Reverse().ToArray());
 
             if (pos == 0)

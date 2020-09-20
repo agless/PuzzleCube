@@ -38,10 +38,11 @@ namespace PuzzleCubeTest
         }
 
         [TestCase(3, Axis.z, 2, false, Axis.x, 1, false, "white,green,white,white,green,white,red,red,red,green,green,green,yellow,yellow,yellow,green,green,green,yellow,red,red,blue,red,red,yellow,red,red,blue,white,blue,blue,white,blue,blue,white,blue,orange,orange,white,orange,orange,green,orange,orange,white,orange,orange,orange,yellow,blue,yellow,yellow,blue,yellow")]
+        [TestCase(3, Axis.z, 2, true, Axis.x, 1, true, "white,blue,white,white,blue,white,orange,orange,orange,green,green,green,white,white,white,green,green,green,white,red,red,blue,red,red,white,red,red,blue,yellow,blue,blue,yellow,blue,blue,yellow,blue,orange,orange,yellow,orange,orange,green,orange,orange,yellow,red,red,red,yellow,green,yellow,yellow,green,yellow")]
         public void Face_Rotation_With_Inside_Slice(int width, Axis faceAxis, int facePos, bool facePrime, Axis sliceAxis, int slicePos, bool slicePrime, string startState)
         {
             Cube subject = new Cube(startState);
-            subject.ApplyMove(faceAxis, facePos, facePrime);  // TODO: This move is totally broken.  Faces 2, 4, and 5 are incorrect.
+            subject.ApplyMove(faceAxis, facePos, facePrime);
             subject.ApplyMove(sliceAxis, slicePos, slicePrime);
 
             Assert.That(subject.GameBoard, Is.EqualTo(StandardCube(width)));
