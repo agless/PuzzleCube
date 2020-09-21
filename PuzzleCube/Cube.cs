@@ -85,7 +85,7 @@ namespace PuzzleCube
             {
                 if (position < 0)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(position), $"{position} cannot be negative.");
+                    throw new ArgumentOutOfRangeException(nameof(position), $"{nameof(position)} cannot be negative.");
                 }
 
                 Axis = axis;
@@ -259,8 +259,8 @@ namespace PuzzleCube
 
             // 0 => 1 => 5 => 3 => 0
             Color[] temp = GetColumnCopy(0, pos);
-            SetColumn(0, pos, GetColumnCopy(3, pos).Reverse().ToArray());
-            SetColumn(3, pos, GetColumnCopy(5, pos).Reverse().ToArray());
+            SetColumn(0, pos, GetColumnCopy(3, Width - 1 - pos).Reverse().ToArray());
+            SetColumn(3, Width - 1 - pos, GetColumnCopy(5, pos).Reverse().ToArray());
             SetColumn(5, pos, GetColumnCopy(1, pos));
             SetColumn(1, pos, temp);
 
@@ -281,8 +281,8 @@ namespace PuzzleCube
             Color[] temp = GetColumnCopy(0, pos);
             SetColumn(0, pos, GetColumnCopy(1, pos));
             SetColumn(1, pos, GetColumnCopy(5, pos));
-            SetColumn(5, pos, GetColumnCopy(3, pos).Reverse().ToArray());
-            SetColumn(3, pos, temp.Reverse().ToArray());
+            SetColumn(5, pos, GetColumnCopy(3, Width - 1 - pos).Reverse().ToArray());
+            SetColumn(3, Width - 1 - pos, temp.Reverse().ToArray());
 
             if (pos == 0)
             {

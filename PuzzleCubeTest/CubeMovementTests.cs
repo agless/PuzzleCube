@@ -39,6 +39,8 @@ namespace PuzzleCubeTest
 
         [TestCase(3, Axis.z, 2, false, Axis.x, 1, false, "white,green,white,white,green,white,red,red,red,green,green,green,yellow,yellow,yellow,green,green,green,yellow,red,red,blue,red,red,yellow,red,red,blue,white,blue,blue,white,blue,blue,white,blue,orange,orange,white,orange,orange,green,orange,orange,white,orange,orange,orange,yellow,blue,yellow,yellow,blue,yellow")]
         [TestCase(3, Axis.z, 2, true, Axis.x, 1, true, "white,blue,white,white,blue,white,orange,orange,orange,green,green,green,white,white,white,green,green,green,white,red,red,blue,red,red,white,red,red,blue,yellow,blue,blue,yellow,blue,blue,yellow,blue,orange,orange,yellow,orange,orange,green,orange,orange,yellow,red,red,red,yellow,green,yellow,yellow,green,yellow")]
+        [TestCase(3, Axis.x, 0, false, Axis.z, 1, false, "green,white,white,green,red,red,green,white,white,yellow,green,green,orange,green,green,yellow,green,green,red,yellow,red,red,yellow,red,red,yellow,red,blue,blue,white,blue,blue,red,blue,blue,white,orange,orange,orange,white,white,white,orange,orange,orange,blue,yellow,yellow,blue,orange,orange,blue,yellow,yellow")]
+        [TestCase(3, Axis.x, 0, true, Axis.z, 1, true, "blue,white,white,blue,orange,orange,blue,white,white,white,green,green,orange,green,green,white,green,green,red,white,red,red,white,red,red,white,red,blue,blue,yellow,blue,blue,red,blue,blue,yellow,orange,orange,orange,yellow,yellow,yellow,orange,orange,orange,green,yellow,yellow,green,red,red,green,yellow,yellow")]
         public void Face_Rotation_With_Inside_Slice(int width, Axis faceAxis, int facePos, bool facePrime, Axis sliceAxis, int slicePos, bool slicePrime, string startState)
         {
             Cube subject = new Cube(startState);
