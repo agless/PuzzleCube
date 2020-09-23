@@ -66,7 +66,7 @@ namespace PuzzleCube
         /// (with GameBoard[0] on top and GameBoard[1] facing the observer:
         ///     Axis.x:  Position zero is the left-most column.
         ///     Axis.y:  Position zero is the top row.
-        ///     Axis.z:  Position zero is the face farthest from the observer.
+        ///     Axis.z:  Position zero is the layer facing the observer.
         ///     
         /// Set <see cref="Move.Prime"/> to <code>true</code> if the layer to
         /// move shold be turned counter-clockwise if the following face were
@@ -350,18 +350,18 @@ namespace PuzzleCube
             }
 
             // 0 => 2 => 5 => 4 => 0
-            Color[] temp = GetRowCopy(0, pos);
-            GameBoard[0][pos] = GetColumnCopy(4, pos).Reverse().ToArray();
-            SetColumn(4, pos, GetRowCopy(5, Width - 1 - pos));
-            GameBoard[5][Width - 1 - pos] = GetColumnCopy(2, Width - 1 - pos).Reverse().ToArray();
-            SetColumn(2, Width - 1 - pos, temp);
+            Color[] temp = GetRowCopy(0, Width - 1 - pos);
+            GameBoard[0][Width - 1 - pos] = GetColumnCopy(4, Width - 1 - pos).Reverse().ToArray();
+            SetColumn(4, Width - 1 - pos, GetRowCopy(5, pos));
+            GameBoard[5][pos] = GetColumnCopy(2, pos).Reverse().ToArray();
+            SetColumn(2, pos, temp);
 
-            if (pos == 0)
+            if (pos == Width - 1)
             {
                 RotateFace(3, true);
             }
 
-            if (pos == Width -1)
+            if (pos == 0)
             {
                 RotateFace(1);
             }
@@ -370,18 +370,18 @@ namespace PuzzleCube
         private void MoveFacingPrime(int pos)
         {
             // 0 => 4 => 5 => 2 => 0
-            Color[] temp = GetRowCopy(0, pos);
-            GameBoard[0][pos] = GetColumnCopy(2, Width - 1 - pos);
-            SetColumn(2, Width - 1 - pos, GetRowCopy(5, Width - 1 - pos).Reverse().ToArray());
-            GameBoard[5][Width - 1 - pos] = GetColumnCopy(4, pos);
-            SetColumn(4, pos, temp.Reverse().ToArray());
+            Color[] temp = GetRowCopy(0, Width - 1 - pos);
+            GameBoard[0][Width - 1 - pos] = GetColumnCopy(2, pos);
+            SetColumn(2, pos, GetRowCopy(5, pos).Reverse().ToArray());
+            GameBoard[5][pos] = GetColumnCopy(4, Width - 1 - pos);
+            SetColumn(4, Width - 1 - pos, temp.Reverse().ToArray());
 
-            if (pos == 0)
+            if (pos == Width - 1)
             {
                 RotateFace(3);
             }
 
-            if (pos == Width - 1)
+            if (pos == 0)
             {
                 RotateFace(1, true);
             }
