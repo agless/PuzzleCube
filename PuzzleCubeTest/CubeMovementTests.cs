@@ -43,11 +43,41 @@ namespace PuzzleCubeTest
         [TestCase(3, Axis.x, 0, true, Axis.z, 1, true, "blue,white,white,blue,orange,orange,blue,white,white,white,green,green,orange,green,green,white,green,green,red,white,red,red,white,red,red,white,red,blue,blue,yellow,blue,blue,red,blue,blue,yellow,orange,orange,orange,yellow,yellow,yellow,orange,orange,orange,green,yellow,yellow,green,red,red,green,yellow,yellow")]
         [TestCase(3, Axis.y, 0, false, Axis.x, 1, false, "white,white,white,green,green,green,white,white,white,orange,orange,orange,green,yellow,green,green,yellow,green,green,yellow,green,red,red,red,red,red,red,red,red,red,blue,white,blue,blue,white,blue,blue,white,blue,orange,orange,orange,orange,orange,orange,yellow,blue,yellow,yellow,blue,yellow,yellow,blue,yellow")]
         [TestCase(3, Axis.y, 0, true, Axis.x, 1, true, "white,white,white,blue,blue,blue,white,white,white,red,red,red,green,white,green,green,white,green,blue,yellow,blue,red,red,red,red,red,red,orange,orange,orange,blue,yellow,blue,blue,yellow,blue,green,white,green,orange,orange,orange,orange,orange,orange,yellow,green,yellow,yellow,green,yellow,yellow,green,yellow")]
+        [TestCase(4, Axis.x, 0, false, Axis.z, 2, false, "green, white,white,white,green,red,red,red,green,white,white,white,green,white,white,white,yellow,green,green,green,yellow,green,green,green,orange,green,green,green,yellow,green,green,green,red,red,yellow,red,red,red,yellow,red,red,red,yellow,red,red,red,yellow,red,blue,blue,blue,white,blue,blue,blue,white,blue,blue,blue,red,blue,blue,blue,white,orange,orange,orange,orange,orange,orange,orange,orange,white,white,white,white,orange,orange,orange,orange,blue,yellow,yellow,yellow,blue,yellow,yellow,yellow,blue,orange,orange,orange,blue,yellow,yellow,yellow")]
         public void Face_Rotation_With_Inside_Slice(int width, Axis faceAxis, int facePos, bool facePrime, Axis sliceAxis, int slicePos, bool slicePrime, string startState)
         {
             Cube subject = new Cube(startState);
             subject.ApplyMove(faceAxis, facePos, facePrime);
             subject.ApplyMove(sliceAxis, slicePos, slicePrime);
+
+            Assert.That(subject.GameBoard, Is.EqualTo(StandardCube(width)));
+        }
+
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
+        [TestCase(5)]
+        public void Do_And_Undo(int width)
+        {
+            Cube subject = new Cube(width);
+            Assert.That(subject.GameBoard, Is.EqualTo(StandardCube(width)));
+
+            for (int j = 0; j < subject.Width; j++)
+            {
+                subject.ApplyMove(new Move(Axis.x, j, false));
+                subject.ApplyMove(new Move(Axis.y, j, false));
+                subject.ApplyMove(new Move(Axis.z, j, false));
+            }
+
+            Assert.That(subject.GameBoard, Is.Not.EqualTo(StandardCube(width)));
+
+            for (int j = subject.Width - 1; j >= 0; j--)
+            {
+                subject.ApplyMove(new Move(Axis.z, j, true));
+                subject.ApplyMove(new Move(Axis.y, j, true));
+                subject.ApplyMove(new Move(Axis.x, j, true));
+            }
 
             Assert.That(subject.GameBoard, Is.EqualTo(StandardCube(width)));
         }
