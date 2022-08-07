@@ -211,9 +211,12 @@ namespace PuzzleCube
 
         #endregion
 
+        #region Public API
+
         /// <summary>
         /// Applies a move.
         /// </summary>
+        /// <param name="move">The move to apply.</param>
         /// <returns>The new state of the <see cref="GameBoard"/>.</returns>
         public Color[][][] ApplyMove(Move move)
         {
@@ -248,6 +251,41 @@ namespace PuzzleCube
         /// <param name="prime"></param>
         /// <returns>The new state of the <see cref="GameBoard"/>.</returns>
         public Color[][][] ApplyMove(Axis axis, int position, bool prime = false) => ApplyMove(new Move(axis, position, prime));
+
+        /// <summary>
+        /// Rotates the entire cube by applying a <see cref="Move.Axis"/> and <see cref="Move.Prime"/>.  The <see cref="Move.Position"/> is ignored.
+        /// </summary>
+        /// <param name="move">The <see cref="Move"/> to apply.</param>
+        /// <returns>The new state of the <see cref="GameBoard"/>.</returns>
+        public Color[][][] RotateCube(Move move)
+        {
+            switch (move.Axis)
+            {
+                case Axis.x:
+                    RotateCubeOnX(move.Prime);
+                    break;
+                case Axis.y:
+                    RotateCubeOnY(move.Prime);
+                    break;
+                case Axis.z:
+                    RotateCubeOnZ(move.Prime);
+                    break;
+                default:
+                    throw new NotSupportedException($"{move} is not a valid Move for this operation");
+            }
+            
+            return GameBoard;
+        }
+
+        /// <summary>
+        /// Rotates the entire cube.
+        /// </summary>
+        /// <param name="axis">The <see cref="Move.Axis"/> on which to rotate the cube.</param>
+        /// <param name="prime">The direction to rotate the cube.</param>
+        /// <returns>The new state of the <see cref="GameBoard"/>.</returns>
+        public Color[][][] RotateCube(Axis axis, bool prime = false) => RotateCube(new Move(axis, 0, prime));
+
+        #endregion
 
         private void MoveColumn(int pos, bool prime = false)
         {
@@ -410,6 +448,124 @@ namespace PuzzleCube
                 faceCopy[i] = faceCopy[i].Reverse().ToArray();
                 SetColumn(face, i, faceCopy[i]);
             }
+        }
+
+        private void RotateFace180(int face)
+        {
+            Color[][] faceCopy = GetFaceCopy(face);
+            for (int i = 0; i < Width; i++)
+            {
+                var rowReverse = faceCopy[i].Reverse().ToArray();
+                GameBoard[face][Width - 1 - i] = rowReverse;
+            }
+        }
+
+        private void RotateCubeOnX(bool prime)
+        {
+            if (prime)
+            {
+                RotateCubeOnXPrime();
+                return;
+            }
+
+            // 0 -> 1 -> 5 -> 3 -> 0
+            RotateFace180(3);
+            RotateFace180(5);
+            var temp = GetFaceCopy(3);
+            GameBoard[3] = GameBoard[5];
+            GameBoard[5] = GameBoard[1];
+            GameBoard[1] = GameBoard[0];
+            GameBoard[0] = temp;
+            
+            RotateFace(2, true);
+            RotateFace(4);
+        }
+
+        private void RotateCubeOnXPrime()
+        {
+            // 0 -> 3 -> 5 -> 1 -> 0
+            RotateFace180(0);
+            RotateFace180(3);
+            var temp = GetFaceCopy(1);
+            GameBoard[1] = GameBoard[5];
+            GameBoard[5] = GameBoard[3];
+            GameBoard[3] = GameBoard[0];
+            GameBoard[0] = temp;
+            
+            RotateFace(4, true);
+            RotateFace(2);
+        }
+
+        private void RotateCubeOnY(bool prime)
+        {
+            if (prime)
+            {
+                RotateCubeOnYPrime();
+                return;
+            }
+
+            // 1 -> 4 -> 3 -> 2 -> 1
+            var temp = GetFaceCopy(1);
+            GameBoard[1] = GameBoard[2];
+            GameBoard[2] = GameBoard[3];
+            GameBoard[3] = GameBoard[4];
+            GameBoard[4] = temp;
+            
+            RotateFace(0);
+            RotateFace(5, true);
+        }
+
+        private void RotateCubeOnYPrime()
+        {
+            // 1 -> 2 -> 3 -> 4 -> 1
+            var temp = GetFaceCopy(1);
+            GameBoard[1] = GameBoard[4];
+            GameBoard[4] = GameBoard[3];
+            GameBoard[3] = GameBoard[2];
+            GameBoard[2] = temp;
+            
+            RotateFace(0, true);
+            RotateFace(5);
+        }
+
+        private void RotateCubeOnZ(bool prime)
+        {
+            if (prime)
+            {
+                RotateCubeOnZPrime();
+                return;
+            }
+
+            // 0 -> 2 -> 5 -> 4 -> 0
+            RotateFace(0);
+            RotateFace(2);
+            RotateFace(4);
+            RotateFace(5);
+            var temp = GetFaceCopy(0);
+            GameBoard[0] = GameBoard[4];
+            GameBoard[4] = GameBoard[5];
+            GameBoard[5] = GameBoard[2];
+            GameBoard[2] = temp;
+            
+            RotateFace(1);
+            RotateFace(3, true);
+        }
+
+        private void RotateCubeOnZPrime()
+        {
+            // 0 -> 4 -> 5 -> 2 -> 0
+            RotateFace(0, true);
+            RotateFace(2, true);
+            RotateFace(4, true);
+            RotateFace(5, true);
+            var temp = GameBoard[0];
+            GameBoard[0] = GameBoard[2];
+            GameBoard[2] = GameBoard[5];
+            GameBoard[5] = GameBoard[4];
+            GameBoard[4] = temp;
+            
+            RotateFace(1, true);
+            RotateFace(3);
         }
 
         private Color[][][] AllocateGameBoard(int width)
