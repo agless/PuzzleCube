@@ -54,6 +54,14 @@ namespace PuzzleCubeTest
         [TestCase("White White White White White White White White White Green Green Green Green Green Green Green Green Green Red Red Red Red Red Red Red Red Red Blue Blue Blue Blue Blue Blue Blue Blue Blue Orange Orange Orange Orange Orange Orange Orange Orange Orange Yellow Yellow Yellow Yellow Yellow Yellow Yellow Yellow Yellow")]
         [TestCase("white, white, white, white, white, white, white, white, white, green, green, green, green, green, green, green, green, green, red, red, red, red, red, red, red, red, red, blue, blue, blue, blue, blue, blue, blue, blue, blue, orange, orange, orange, orange, orange, orange, orange, orange, orange, yellow, yellow, yellow, yellow, yellow, yellow, yellow, yellow, yellow")]
         [TestCase("White, White, White, White, White, White, White, White, White, Green, Green, Green, Green, Green, Green, Green, Green, Green, Red, Red, Red, Red, Red, Red, Red, Red, Red, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Orange, Orange, Orange, Orange, Orange, Orange, Orange, Orange, Orange, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow")]
+        [TestCase("wwwwwwwwwgggggggggrrrrrrrrrbbbbbbbbboooooooooyyyyyyyyy")]
+        [TestCase("w w w w w w w w w g g g g g g g g g r r r r r r r r r b b b b b b b b b o o o o o o o o o y y y y y y y y y")]
+        [TestCase("w,w,w,w,w,w,w,w,w,g,g,g,g,g,g,g,g,g,r,r,r,r,r,r,r,r,r,b,b,b,b,b,b,b,b,b,o,o,o,o,o,o,o,o,o,y,y,y,y,y,y,y,y,y")]
+        [TestCase("w, w, w, w, w, w, w, w, w, g, g, g, g, g, g, g, g, g, r, r, r, r, r, r, r, r, r, b, b, b, b, b, b, b, b, b, o, o, o, o, o, o, o, o, o, y, y, y, y, y, y, y, y, y")]
+        [TestCase("WWWWWWWWWGGGGGGGGGRRRRRRRRRBBBBBBBBBOOOOOOOOOYYYYYYYYY")]
+        [TestCase("W W W W W W W W W G G G G G G G G G R R R R R R R R R B B B B B B B B B O O O O O O O O O Y Y Y Y Y Y Y Y Y")]
+        [TestCase("W,W,W,W,W,W,W,W,W,G,G,G,G,G,G,G,G,G,R,R,R,R,R,R,R,R,R,B,B,B,B,B,B,B,B,B,O,O,O,O,O,O,O,O,O,Y,Y,Y,Y,Y,Y,Y,Y,Y")]
+        [TestCase("W, W, W, W, W, W, W, W, W, G, G, G, G, G, G, G, G, G, R, R, R, R, R, R, R, R, R, B, B, B, B, B, B, B, B, B, O, O, O, O, O, O, O, O, O, Y, Y, Y, Y, Y, Y, Y, Y, Y")]
         public void Constructor_String_Returns_Expected_GameBoard(string colors)
         {
             Cube subject = new Cube(colors);

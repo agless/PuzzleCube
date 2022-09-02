@@ -3,6 +3,7 @@
 using NUnit.Framework;
 
 using PuzzleCube;
+using PuzzleCube.Helpers;
 using static PuzzleCube.Cube;
 
 namespace PuzzleCubeTest
@@ -10,6 +11,8 @@ namespace PuzzleCubeTest
     [TestFixture]
     public class CubeTestsFixture
     {
+        internal CubeComparer _comparer = new CubeComparer();
+
         public static Color[][][] Standard_1x1 = new Color[6][][]
         {
             new Color[1][] { new Color[1] { Color.White } },

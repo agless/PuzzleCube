@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 
 namespace PuzzleCube
 {
@@ -33,6 +34,14 @@ namespace PuzzleCube
         ///     [5] Yellow
         /// </remarks>
         public Color[][][] GameBoard { get; private set; }
+
+        /// <inheritdoc />
+        public override string ToString() => ToString();
+
+        public string ToString(bool withCommas = false, bool withSpaces = false, bool withDoubleSpace = false, bool initials = true)
+        {
+            return FormatStringOut(withCommas, withSpaces, withDoubleSpace, initials);
+        }
 
         /// <summary>
         /// The n-by-n size of the puzzle cube.
@@ -97,7 +106,7 @@ namespace PuzzleCube
         #endregion
 
         #region Constructors
-
+        
         /// <summary>
         /// Initializes a new <see cref="PuzzleCube"/>.
         /// </summary>
@@ -125,35 +134,53 @@ namespace PuzzleCube
         /// <summary>
         /// Initializes a new <see cref="PuzzleCube"/>.
         /// </summary>
-        /// <param name="faces">A 3D array of <see cref="Color"/>, with 6 n-by-n faces.</param>
-        public Cube(Color[][][] faces)
-        {
-            _ = faces ?? throw new ArgumentNullException(nameof(faces));
+        /// <param name="cube">The <see cref="Cube"/> to clone.  The constructed <see cref="Cube"/> will have a <see cref="GameBoard"/>
+        /// that is a deep copy of the <see cref="GameBoard"/> passed in.  No reference to the <see cref="Cube"/> argument is retained.</param>
+        public Cube(Cube cube) : this(cube.GameBoard) { }
 
-            if (faces.Length != 6)
+        /// <summary>
+        /// Initializes a new <see cref="PuzzleCube"/>.
+        /// </summary>
+        /// <param name="gameBoard">A 3D array of <see cref="Color"/>, with 6 n-by-n faces.</param>
+        public Cube(Color[][][] gameBoard)
+        {
+            _ = gameBoard ?? throw new ArgumentNullException(nameof(gameBoard));
+
+            if (gameBoard.Length != 6)
             {
-                throw new ArgumentOutOfRangeException(nameof(faces), "Only six-sided CUBES are supported");
+                throw new ArgumentOutOfRangeException(nameof(gameBoard), "Only six-sided CUBES are supported");
             }
 
-            int width = faces[0].Length;
+            int width = gameBoard[0].Length;
 
-            foreach (Color[][] face in faces)
+            foreach (Color[][] face in gameBoard)
             {
                 if (face.Length != width)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(faces), "Only CUBES are supported");
+                    throw new ArgumentOutOfRangeException(nameof(gameBoard), "Only CUBES are supported");
                 }
 
                 for (int i = 0; i < width; i++)
                 {
                     if (face[i].Length != width)
                     {
-                        throw new ArgumentOutOfRangeException(nameof(faces), "Only CUBES are supported");
+                        throw new ArgumentOutOfRangeException(nameof(gameBoard), "Only CUBES are supported");
                     }
                 }
             }
 
-            GameBoard = faces;
+            GameBoard = AllocateGameBoard(gameBoard[0].Length);
+
+            for (int i = 0; i < 6; i++)
+            {
+                for (int j = 0; j < gameBoard[0].Length; j++)
+                {
+                    for (int k = 0; k < gameBoard[0].Length; k++)
+                    {
+                        GameBoard[i][j][k] = gameBoard[i][j][k];
+                    }
+                }
+            }
         }
 
         // TODO: Add constructor accepting string[][][]
@@ -169,8 +196,11 @@ namespace PuzzleCube
         /// <summary>
         /// Initializes a new <see cref="PuzzleCube"/>.
         /// </summary>
-        /// <param name="colors">A space or comma-separated <code>string</code> of
-        /// <see cref="Color"/> names.</param>
+        /// <param name="colors">
+        /// A <code>string</code> containing one of the following:
+        /// 1) A space or comma-separated list of <see cref="Color"/> names or initials; or
+        /// 2) A string of <see cref="Color"/> initials without separators.
+        /// </param>
         public Cube(string colors)
         {
             _ = colors ?? throw new ArgumentNullException(nameof(colors));
@@ -181,10 +211,19 @@ namespace PuzzleCube
                                     .Where(item => !string.IsNullOrEmpty(item))
                                     .ToArray();
 
+            if (colorsSplit.Length == 1)
+            {
+                colorsSplit = colorsSplit
+                                .First()
+                                .ToCharArray()
+                                .Select(character => character.ToString())
+                                .ToArray();
+            }
+
             int width = Convert.ToInt32(Math.Sqrt(colorsSplit.Length / 6));
             if (width == 0 || width * width * 6 != colorsSplit.Length)
             {
-                throw new ArgumentException(nameof(colors), "Incorrect number of colors.  Cube must have 6 n-by-n grids.");
+                throw new ArgumentException("Incorrect number of colors.  Cube must have 6 n-by-n grids.", nameof(colors));
             }
 
             GameBoard = AllocateGameBoard(width);
@@ -196,13 +235,26 @@ namespace PuzzleCube
                 {
                     for (int k = 0; k < width; k++)
                     {
-                        try
+                        var rawColor = colorsSplit[count++];
+                        if (rawColor.Length == 1)
                         {
-                            GameBoard[i][j][k] = (Color)Enum.Parse(typeof(Color), colorsSplit[count++], true);
+                            GameBoard[i][j][k] = rawColor switch
+                            {
+                                "w" or "W" => Color.White,
+                                "g" or "G" => Color.Green,
+                                "r" or "R" => Color.Red,
+                                "b" or "B" => Color.Blue,
+                                "o" or "O" => Color.Orange,
+                                "y" or "Y" => Color.Yellow,
+                                _ => throw new ArgumentException($"Could not parse {colorsSplit[count - 1]}", nameof(colors))
+                            };
                         }
-                        catch (ArgumentException)
+                        else
                         {
-                            throw new ArgumentException(nameof(colors), $"Could not parse {colorsSplit[count - 1]}");
+                            if (!Enum.TryParse(rawColor, true, out GameBoard[i][j][k]))
+                            {
+                                throw new ArgumentException($"Could not parse {colorsSplit[count - 1]}", nameof(colors));
+                            }
                         }
                     }
                 }
@@ -286,6 +338,41 @@ namespace PuzzleCube
         public Color[][][] RotateCube(Axis axis, bool prime = false) => RotateCube(new Move(axis, 0, prime));
 
         #endregion
+
+        private string FormatStringOut(bool withCommas = false, bool withSpaces = false, bool withDoubleSpace = false, bool initials = true)
+        {
+            var delimiterString = $"{((withCommas) ? "," : string.Empty)}{((withSpaces) ? " " : string.Empty)}";
+            var cubeBuilder = new StringBuilder();
+
+            void appendLine(int face, int row)
+            {
+                cubeBuilder
+                    .AppendJoin(delimiterString, (initials) 
+                        ? GameBoard[face][row].Select(color => color.ToString().ToCharArray().First().ToString())
+                        : GameBoard[face][row].Select(color => color.ToString()))
+                    .AppendLine();
+                
+                if (withDoubleSpace)
+                {
+                    cubeBuilder.AppendLine();
+                }
+            }
+
+            for (int i = 0; i < 6; i++)
+            {   
+                for (int j = 0; j < Width; j++)
+                {
+                    appendLine(i, j);
+                }
+
+                if (withDoubleSpace)
+                {
+                    cubeBuilder.AppendLine();
+                }
+            }
+
+            return cubeBuilder.ToString();
+        }
 
         private void MoveColumn(int pos, bool prime = false)
         {

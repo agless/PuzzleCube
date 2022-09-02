@@ -1,163 +1,123 @@
+using PuzzleCube.Extensions;
+using PuzzleCube.Helpers;
+using PuzzleCube.Models;
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using static PuzzleCube.Cube;
 
 namespace PuzzleCube
 {
     public class Solver
     {
-        Cube Subject { get; set; }
-        
-        public Solver(Cube subject)
+        public Cube StartingState { get; }
+        public Cube DesiredState { get; }
+        public IEnumerable<Move> Solution => _solution ?? Solve();
+
+        internal List<Move> _solution;
+        internal CubeComparer _comparer = new();
+        internal HashSet<Cube> _solvedBoards = new HashSet<Cube>(new CubeComparer());
+        internal Dictionary<Cube, SolveState> _visited = new Dictionary<Cube, SolveState>();
+        internal SortedSet<SolveState> _next = new SortedSet<SolveState>(
+            Comparer<SolveState>.Create((item1, item2) =>
+            {
+                return item2.Efficiency.CompareTo(item1.Efficiency);
+            }));
+
+        public Solver(Cube startingState, Cube desiredState)
         {
-            Subject = subject ?? throw new ArgumentNullException(nameof(subject));
+            StartingState = startingState ?? throw new ArgumentNullException(nameof(startingState));
+            DesiredState = desiredState ?? throw new ArgumentNullException(nameof(desiredState));
         }
 
         public IEnumerable<Move> Solve()
         {
-            Dictionary<Color[][][], SolveState> visited = new Dictionary<Color[][][], SolveState>();
-            SortedSet<SolveState> next = new SortedSet<SolveState>(
-                Comparer<SolveState>.Create((item1, item2) => 
-                {
-                    return (item1.Score < item2.Score) ? -1 : (item1.Score > item2.Score) ? 1 : 0;
-                }));
+            if (_solution is not null) return _solution;
 
-            int solvedScore = CalculateScore(new Cube(Subject.Width).GameBoard);
-            SolveState first = new SolveState(CalculateScore(Subject.GameBoard), Subject, new List<Move>());
-            next.Add(first);
+            _solution = new List<Move>();
+            _solvedBoards.UnionWith(DesiredState.GetAllOrientations());   
+            if (_solvedBoards.Contains(StartingState)) return _solution;
 
-            List<Move> bestSolution = null;
-            IEnumerable<Move> allMoves = GetAllMoves(Subject.Width);
+            var initialState = new SolveState(StartingState, _comparer.CalculateScore(StartingState, DesiredState), default);
+            foreach (var cube in StartingState.GetAllOrientations()) { _visited.Add(cube, initialState); }
 
-            while(next.Count > 0)
+            foreach (var move in StartingState.GetAllMoves()) 
             {
-                SolveState current = next.Max;
-                next.Remove(current);
-
-                if ((bestSolution != null) && (current.Moves.Count + 1 >= bestSolution.Count))
+                var nextCube = new Cube(StartingState);
+                nextCube.ApplyMove(move);
+                if (_solvedBoards.Contains(nextCube))
                 {
-                    continue;
+                    _solution.Add(move);
+                    return _solution;
                 }
+                _next.Add(new SolveState(nextCube, _comparer.CalculateScore(nextCube, DesiredState), move, initialState));
+            }
 
-                foreach (Move move in allMoves)
+            while (_next.Any())
+            {
+                var currentState = _next.First();
+                _next.Remove(_next.First());
+
+                if (_solution.Any() && currentState.Index >= _solution.Count) continue;
+                
+                var currentCube = currentState.Cube;
+
+                foreach(var move in currentCube.GetAllMoves())
                 {
-                    Cube nextCube = new Cube(current.Cube.GameBoard);
+                    var nextCube = new Cube(currentCube);
                     nextCube.ApplyMove(move);
-                    int score = CalculateScore(nextCube.GameBoard);
-                    List<Move> moves = new List<Move>(current.Moves);
-                    moves.Add(move);
-
-                    // Check whether this state has already been visited.
-                    if (visited.ContainsKey(nextCube.GameBoard))
+                    var nextCubeMoves = currentState.Moves.Append(move).ToList();
+                    
+                    // Check whether it's solved.
+                    if (_solvedBoards.Contains(nextCube))
                     {
-                        // Depending on number of moves to get here,
-                        // either discard this state or cull the visited item and its children
-                        SolveState previous = visited[nextCube.GameBoard];
-                        if (previous.Moves.Count <= moves.Count)
+                        var currentSolution = nextCubeMoves;
+
+                        if (_solution.Any() && currentSolution.Count >= _solution.Count) continue;
+
+                        _solution = currentSolution;
+
+                        continue;
+                    }
+
+                    var nextState = new SolveState(nextCube, _comparer.CalculateScore(nextCube, DesiredState), move, currentState);
+
+                    // Check whether we've been here before.
+                    if (_visited.ContainsKey(nextCube))
+                    {
+                        // Is this a more efficient way to get here?
+                        var previousVisit = _visited[nextCube];
+                        if (nextCubeMoves.Count <= previousVisit.Moves.Count)
                         {
+                            // Replace the parent state for the previous visit with the current state
+                            // since this is a more efficient way to reach this state.
+                            previousVisit.Previous = currentState;
                             continue;
                         }
                         else
                         {
-                            UpdateSolveStateAndDescendants(previous);
+                            // Just discard this state since it is a less efficient way to get to a
+                            // state we have already seen.
+                            continue;
                         }
-
-                    }
-
-                    if (score == solvedScore)
+                    } 
+                    else
                     {
-                        bestSolution = moves;
-                        continue;
+                        // Add all orientations of this state to the 'visited' collection.
+                        _visited.AddAllOrientations(nextCube, nextState);
                     }
 
-                    SolveState nextState = new SolveState(score / moves.Count, nextCube, moves);
-                    current.Children.Add(nextState);
-                    next.Add(nextState);
-                    visited.Add(nextState.Cube.GameBoard, nextState);
+                    // Put the new state in the 'next' queue
+                    _next.Add(nextState);
                 }
             }
 
-            if (bestSolution == null)
+            if (!_solution.Any())
             {
-                throw new ArgumentException("No solution is possible.");
+                throw new InvalidOperationException("No solution exists.");
             }
 
-            return bestSolution;
-        }
-
-        private int CalculateScore(Color[][][] gameBoard)
-        {
-            int score = 0;
-            for (int i = 0; i < 6; i++)
-            {
-                int[] colorDistribution = new int[Enum.GetNames(typeof(Color)).Length];
-                for (int j = 0; j < gameBoard[0].Length - 1; j++)
-                {
-                    for (int k = 0; k < gameBoard[0].Length - 1; k++)
-                    {
-                        Color current = gameBoard[i][j][k];
-                        colorDistribution[(int)current]++;
-
-                        if (((j > 0) && (gameBoard[i][j - 1][k] == current)) ||
-                            ((j < gameBoard[0].Length - 1) && (gameBoard[i][j + 1][k] == current)) ||
-                            ((k > 0) && (gameBoard[i][j][k - 1] == current) ||
-                            ((k < gameBoard[0].Length - 1) && (gameBoard[i][j][k + 1] == current))))
-                        {
-                            score++;
-                        }
-                    }
-                }
-
-                int maxColor = 0;
-                for (int l = 0; l < colorDistribution.Length; l++)
-                {
-                    if (colorDistribution[l] > maxColor)
-                    {
-                        maxColor = colorDistribution[l];
-                    }
-                }
-
-                score += maxColor;
-            }
-
-            return score;
-        }
-
-        private IEnumerable<Move> GetAllMoves(int width)
-        {
-            List<Move> result = new List<Move>();
-            
-            foreach (Axis axis in Enum.GetValues(typeof(Axis)))
-            {
-                for (int i = 0; i < width; i++)
-                {
-                    result.Add(new Move(axis, i, true));
-                    result.Add(new Move(axis, i, false));
-                }
-            }
-
-            return result;
-        }
-
-        private void UpdateSolveStateAndDescendants(SolveState state)
-        {
-            
-        }
-
-        internal class SolveState
-        {
-            public int Score { get; }
-            public Cube Cube { get; }
-            public List<Move> Moves { get; }
-            public List<SolveState> Children { get; set; }
-
-            public SolveState(int score, Cube cube, List<Move> moves)
-            {
-                Score = score;
-                Cube = cube;
-                Moves = moves;
-            }
+            return _solution;
         }
     }
 }
